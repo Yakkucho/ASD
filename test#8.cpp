@@ -237,16 +237,26 @@ public:
         }
     }
 
-    void printText() {
+    string printText() {
+        string text;
         nodeKata* current = headData;
         while (current != nullptr) {
-            cout << current->data;
+            text += current->data;
             if (current->next != nullptr) {
-                cout << ',';
+                text += ",";
             }
             current = current->next;
         }
-        cout << endl;
+        text += '\n';
+        return text;
+    }
+
+    void printGroupTopic(){
+        nodeKata* current = headData;
+        while (current != nullptr){
+            cout << current->data;
+            current = current->next;
+        }
     }
 };
 
@@ -371,11 +381,13 @@ public:
                 if (prevGroup) {
                     prevGroup->nextGroup = diFollow_Group->nextGroup;
                 }
+
+                if (tailGroup == diFollow_Group) {
+                    tailGroup = nullptr;
+                    tailGroup = prevGroup;
+                }
             }
 
-            if (tailGroup == diFollow_Group) {
-                tailGroup = nullptr;
-            }
 
             delete diFollow_Group;
             numberOfGroup--;
@@ -407,7 +419,7 @@ public:
         }
 
         obj.sortText();
-        obj.printText();
+        cout << obj.printText();
     }
 
     void suggestfriend(string username) {
@@ -459,10 +471,11 @@ public:
     obj.removeException(username);
 
     obj.sortText();
-    obj.printText();
+    cout << obj.printText();
     }
 
     void grouptopic() {
+        textOutputContainer out;
         Group* currentGroup = headGroup;
         while (currentGroup) {
             textOutputContainer obj;
@@ -475,9 +488,12 @@ public:
             }
             obj.sortMinat();
             obj.sortText();
-            obj.printText();
+            out.addString(obj.printText(),1);
             currentGroup = currentGroup->nextGroup;
         }
+        out.sortText();
+        out.printGroupTopic();
+
     }
 
     int mincuit(string user1, string user2) {
@@ -495,63 +511,115 @@ public:
     }
 };
 
+class Node {
+public:
+    string data;
+    Node* next;
 
-int main() {
-    // Usernames and interests are hardcoded
-    string names[] = {"Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi", "Ivan", "Judy"};
-    string interests[][3] = {
-        {"sports", "music", "movies"},
-        {"reading", "traveling", "gaming"},
-        {"cooking", "fitness", "photography"},
-        {"art", "music", "sports"},
-        {"gaming", "movies", "reading"},
-        {"traveling", "cooking", "art"},
-        {"fitness", "photography", "music"},
-        {"sports", "gaming", "movies"},
-        {"reading", "art", "fitness"},
-        {"cooking", "traveling", "music"}
-    };
+    Node(const string &data) : data(data), next(nullptr) {}
+};
 
-    App myApp;
+class Queue {
+private:
+    Node* front;
+    Node* rear;
 
-    // Insert 10 users into the application
-    for (int i = 0; i < 10; ++i) {
-        stringstream ss;
-        ss << interests[i][0] << " " << interests[i][1] << " " << interests[i][2];
-        myApp.insert(ss, names[i]);
+public:
+    Queue() : front(nullptr), rear(nullptr) {}
+
+    void enqueue(const string &data) {
+        Node* newNode = new Node(data);
+        if (rear == nullptr) {
+            front = rear = newNode;
+        } else {
+            rear->next = newNode;
+            rear = newNode;
+        }
     }
 
-    // Create some follower-following relationships
-    myApp.connect("Alice", "Bob");
-    myApp.connect("Alice", "Charlie");
-    myApp.connect("Bob", "David");
-    myApp.connect("Charlie", "Eve");
-    myApp.connect("David", "Frank");
-    myApp.connect("Eve", "Grace");
-    myApp.connect("Frank", "Heidi");
-    myApp.connect("Grace", "Ivan");
-    myApp.connect("Heidi", "Judy");
-    myApp.connect("Ivan", "Alice");
-    myApp.connect("Frank", "Bob");
+    string dequeue() {
+        if (front == nullptr) {
+            return "";
+        }
 
-    // Display the number of groups
-    cout << "Number of groups:" << endl;
-    myApp.numgroup();
+        Node* temp = front;
+        string data = temp->data;
+        front = front->next;
 
-    // Display the most followed users
-    cout << "Most followed users:" << endl;
-    myApp.mostfollowed();
+        if (front == nullptr) {
+            rear = nullptr;
+        }
 
-    // Suggest friends for a user
-    cout << "Suggested friends for Alice:" << endl;
-    myApp.suggestfriend("Alice");
+        delete temp;
+        return data;
+    }
 
-    // Display the most common topics in each group
-    cout << "Group topics:" << endl;
-    myApp.grouptopic();
+    bool isEmpty() const {
+        return front == nullptr;
+    }
+};
 
-    cout << "minrt alice to frank: ";
-    cout << myApp.mincuit("Judy","Grace") << endl; 
+int main() {
+    App cuitcuit;
+    string line;
+    Queue iq;
+    int n, m;
+
+    cin >> n >> m;
+    cin.ignore();
+
+    for (int i = 0; i < n; i++) {
+        string name;
+        getline(cin, line);
+        stringstream currLine(line);
+        currLine >> name;
+        cuitcuit.insert(currLine, name);
+    }
+
+    for (int i = 0; i < m; i++) {
+        string user1, user2;
+        getline(cin, line);
+        stringstream currLine(line);
+        currLine >> user1 >> user2;
+        cuitcuit.connect(user1, user2);
+    }
+
+    while (getline(cin, line) && !line.empty()) {
+        iq.enqueue(line);
+    }
+
+    while (!iq.isEmpty()) {
+        string token = iq.dequeue();
+        stringstream currLine(token);
+        string command;
+        currLine >> command;
+
+        if (command == "insert") {
+            string name;
+            currLine >> name;
+            cuitcuit.insert(currLine, name);
+            cout << name << " inserted" << endl;
+        } else if (command == "connect") {
+            string user1, user2;
+            currLine >> user1 >> user2;
+            cuitcuit.connect(user1, user2);
+            cout << "connect " << user1 << ' ' << user2 << " success" << endl;
+        } else if (command == "mostfollowed") {
+            cuitcuit.mostfollowed();
+        } else if (command == "numgroup") {
+            cuitcuit.numgroup();
+        } else if (command == "grouptopic") {
+            cuitcuit.grouptopic();
+        } else if (command == "suggestfriend") {
+            string user1;
+            currLine >> user1;
+            cuitcuit.suggestfriend(user1);
+        } else if (command == "mincuit") {
+            string user1, user2;
+            currLine >> user1 >> user2;
+            cout << cuitcuit.mincuit(user1, user2) << endl;
+        }
+    }
 
     return 0;
 }
