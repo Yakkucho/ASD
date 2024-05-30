@@ -430,56 +430,56 @@ public:
     }
 
     void suggestfriend(string username) {
-    textOutputContainer obj;
-
-    User* user1 = findUser(username);
-    if (!user1) return;
-
-
-    followNode* currentFollowing = user1->headFollowing;
-    while (currentFollowing) {
-        obj.addString(currentFollowing->name, 1);
-        currentFollowing = currentFollowing->next;
-    }
-
-
-    currentFollowing = user1->headFollowing;
-    while (currentFollowing) {
-        User* friendUser = findUser(currentFollowing->name);
-        if (friendUser) {
-            
-            followNode* followerOfFriend = friendUser->headFollower;
-            while (followerOfFriend) {
-                if (followerOfFriend->name != username) {
-                    obj.addString(followerOfFriend->name, 2);
-                }
-                followerOfFriend = followerOfFriend->next;
-            }
-
-            
-            followNode* followingOfFriend = friendUser->headFollowing;
-            while (followingOfFriend) {
-                if (followingOfFriend->name != username) {
-                    obj.addString(followingOfFriend->name, 2);
-                }
-                followingOfFriend = followingOfFriend->next;
-            }
-        }
-        currentFollowing = currentFollowing->next;
-    }
-
+        textOutputContainer obj;
     
-    currentFollowing = user1->headFollowing;
-    while (currentFollowing) {
-        obj.removeException(currentFollowing->name);
-        currentFollowing = currentFollowing->next;
-    }
-
-    obj.removeException(username);
-
-    obj.sortText();
-    cout << obj.printText();
-    }
+        User* user1 = findUser(username);
+        if (!user1) return;
+    
+    
+        followNode* currentFollowing = user1->headFollowing;
+        while (currentFollowing) {
+            obj.addString(currentFollowing->name, 1);
+            currentFollowing = currentFollowing->next;
+        }
+    
+    
+        currentFollowing = user1->headFollowing;
+        while (currentFollowing) {
+            User* friendUser = findUser(currentFollowing->name);
+            if (friendUser) {
+                
+                followNode* followerOfFriend = friendUser->headFollower;
+                while (followerOfFriend) {
+                    if (followerOfFriend->name != username) {
+                        obj.addString(followerOfFriend->name, 2);
+                    }
+                    followerOfFriend = followerOfFriend->next;
+                }
+    
+                
+                followNode* followingOfFriend = friendUser->headFollowing;
+                while (followingOfFriend) {
+                    if (followingOfFriend->name != username) {
+                        obj.addString(followingOfFriend->name, 2);
+                    }
+                    followingOfFriend = followingOfFriend->next;
+                }
+            }
+            currentFollowing = currentFollowing->next;
+        }
+    
+        
+        currentFollowing = user1->headFollowing;
+        while (currentFollowing) {
+            obj.removeException(currentFollowing->name);
+            currentFollowing = currentFollowing->next;
+        }
+    
+        obj.removeException(username);
+    
+        obj.sortText();
+        cout << obj.printText();
+        }
 
     void grouptopic() {
         textOutputContainer out;
