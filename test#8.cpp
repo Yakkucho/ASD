@@ -197,7 +197,7 @@ public:
     void removeException(string username) {
         if (headData == nullptr) return;
 
-        // If the head needs to be removed
+        
         if (headData->data == username) {
             nodeKata* temp = headData;
             headData = headData->next;
@@ -256,6 +256,39 @@ private:
     Group* tailGroup;
     int groupCounter;
     int numberOfGroup;
+
+    void dfs(User* currentUser, const string& targetUser, textOutputContainer &visited, int currentDepth, int& minEdges) {
+        if (currentUser->username == targetUser) {
+            if (currentDepth < minEdges) {
+                minEdges = currentDepth;
+            }
+            return;
+        }
+       
+        visited.addString(currentUser->username, 2);
+
+        followNode* currentFollowing = currentUser->headFollowing;
+        while (currentFollowing != nullptr) {
+            bool isVisited = false;
+            nodeKata* temp = visited.headData;
+            while (temp != nullptr) {
+                if (temp->data == currentFollowing->name) {
+                    isVisited = true;
+                    break;
+                }
+                temp = temp->next;
+            }
+
+            if (!isVisited) {
+                User* nextUser = findUser(currentFollowing->name);
+                if (nextUser != nullptr) {
+                    dfs(nextUser, targetUser, visited, currentDepth + 1, minEdges);
+                }
+            }
+            currentFollowing = currentFollowing->next;
+        }
+        visited.removeException(currentUser->username);
+    }
 
 public:
     App() : headGroup(nullptr), tailGroup(nullptr), groupCounter(0), numberOfGroup(0) {}
@@ -380,23 +413,22 @@ public:
     void suggestfriend(string username) {
     textOutputContainer obj;
 
-    // Find the user object for the given username
     User* user1 = findUser(username);
     if (!user1) return;
 
-    // Add users Alice already follows to the exception list
+
     followNode* currentFollowing = user1->headFollowing;
     while (currentFollowing) {
         obj.addString(currentFollowing->name, 1);
         currentFollowing = currentFollowing->next;
     }
 
-    // Find friends of Alice's followings
+
     currentFollowing = user1->headFollowing;
     while (currentFollowing) {
         User* friendUser = findUser(currentFollowing->name);
         if (friendUser) {
-            // Check followers of Alice's followings
+            
             followNode* followerOfFriend = friendUser->headFollower;
             while (followerOfFriend) {
                 if (followerOfFriend->name != username) {
@@ -405,7 +437,7 @@ public:
                 followerOfFriend = followerOfFriend->next;
             }
 
-            // Check followings of Alice's followings
+            
             followNode* followingOfFriend = friendUser->headFollowing;
             while (followingOfFriend) {
                 if (followingOfFriend->name != username) {
@@ -417,21 +449,18 @@ public:
         currentFollowing = currentFollowing->next;
     }
 
-    // Remove exceptions (users Alice already follows) from the suggestions
+    
     currentFollowing = user1->headFollowing;
     while (currentFollowing) {
         obj.removeException(currentFollowing->name);
         currentFollowing = currentFollowing->next;
     }
 
-    // Remove the user itself from suggestions
     obj.removeException(username);
 
     obj.sortText();
     obj.printText();
-}
-
-
+    }
 
     void grouptopic() {
         Group* currentGroup = headGroup;
@@ -449,6 +478,20 @@ public:
             obj.printText();
             currentGroup = currentGroup->nextGroup;
         }
+    }
+
+    int mincuit(string user1, string user2) {
+        User* startUser = findUser(user1);
+        if (startUser == nullptr || findUser(user2) == nullptr) {
+            return -1;
+        }
+
+        textOutputContainer visited; 
+        int minEdges = INT_MAX;
+
+        dfs(startUser, user2, visited, -1, minEdges);
+
+        return (minEdges == INT_MAX) ? -1 : minEdges;
     }
 };
 
@@ -506,6 +549,9 @@ int main() {
     // Display the most common topics in each group
     cout << "Group topics:" << endl;
     myApp.grouptopic();
+
+    cout << "minrt alice to frank: ";
+    cout << myApp.mincuit("Judy","Grace") << endl; 
 
     return 0;
 }
