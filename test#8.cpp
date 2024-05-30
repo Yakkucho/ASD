@@ -114,8 +114,7 @@ public:
 
                 nodeKata* newKata2 = new nodeKata(newData);
                 if (headData == nullptr) {
-                    headData = newKata2;
-                    tailData = newKata2;
+                    headData = tailData = newKata2;
                 } else {
                     tailData->next = newKata2;
                     tailData = newKata2;
@@ -193,6 +192,36 @@ public:
         } else {
             minat->next = headMinat;
             headMinat = minat;
+        }
+    }
+    void removeException(string username){
+        if (headData->data == username){
+            nodeKata* temp = headData;
+            headData = temp->next;
+            delete temp;
+            return;
+        }
+
+        bool remove = false;
+        nodeKata* prev = headData;
+        while(prev){
+            if (prev->next->data == username){
+                remove = true;
+                break;
+            }
+        }
+
+        if (!remove){
+            if (tailData->data == username){
+                nodeKata* temp = tailData;
+                prev->next = nullptr;
+                tailData = prev;
+                delete temp;
+            } else {
+                nodeKata* temp = prev->next;
+                prev->next = prev->next->next;
+                delete temp;
+            }
         }
     }
 
@@ -353,21 +382,57 @@ public:
 
     void suggestfriend(string username) {
         textOutputContainer obj;
+
+        struct usernameException
+        {
+            string data;
+            usernameException *next;
+            usernameException(string username) : data(username), next(nullptr) {}
+        };
+        usernameException* headException = nullptr;
+        
         User* user1 = findUser(username);
         followNode* currentFollowing = user1->headFollowing;
         while (currentFollowing) {
+
+            usernameException* newException = new usernameException(currentFollowing->name);
+            newException->next = headException;
+            headException = newException;
+
+
             User* friends = findUser(currentFollowing->name);
             followNode* followerFriends = friends->headFollower;
             while (followerFriends) {
-                obj.addString(followerFriends->name, 2);
+                bool userException = false;
+
+                if(followerFriends->name == username){
+                    userException = true;
+                }
+
+                if (!userException)
+                    obj.addString(followerFriends->name, 2);
+                
                 followerFriends = followerFriends->next;
             }
             followNode* followingFriends = friends->headFollowing;
             while (followingFriends) {
-                obj.addString(followingFriends->name, 2);
+                bool userException = false;
+
+                if(followingFriends->name == username){
+                    userException = true;
+                } 
+                
+                if (!userException)
+                    obj.addString(followingFriends->name, 2);
                 followingFriends = followingFriends->next;
             }
             currentFollowing = currentFollowing->next;
+        }
+
+        usernameException* followingException = headException;
+        while(followingException){
+            obj.removeException(followingException->data);
+            followingException = followingException->next;
         }
         obj.sortText();
         obj.printText();
