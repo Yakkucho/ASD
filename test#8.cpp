@@ -194,34 +194,31 @@ public:
             headMinat = minat;
         }
     }
-    void removeException(string username){
-        if (headData->data == username){
+    void removeException(string username) {
+        if (headData == nullptr) return;
+
+        // If the head needs to be removed
+        if (headData->data == username) {
             nodeKata* temp = headData;
-            headData = temp->next;
+            headData = headData->next;
             delete temp;
             return;
         }
 
-        bool remove = false;
         nodeKata* prev = headData;
-        while(prev){
-            if (prev->next->data == username){
-                remove = true;
-                break;
-            }
-        }
+        nodeKata* current = headData->next;
 
-        if (!remove){
-            if (tailData->data == username){
-                nodeKata* temp = tailData;
-                prev->next = nullptr;
-                tailData = prev;
-                delete temp;
-            } else {
-                nodeKata* temp = prev->next;
-                prev->next = prev->next->next;
-                delete temp;
+        while (current != nullptr) {
+            if (current->data == username) {
+                prev->next = current->next;
+                if (current == tailData) {
+                    tailData = prev;
+                }
+                delete current;
+                return;
             }
+            prev = current;
+            current = current->next;
         }
     }
 
@@ -381,62 +378,60 @@ public:
     }
 
     void suggestfriend(string username) {
-        textOutputContainer obj;
+    textOutputContainer obj;
 
-        struct usernameException
-        {
-            string data;
-            usernameException *next;
-            usernameException(string username) : data(username), next(nullptr) {}
-        };
-        usernameException* headException = nullptr;
-        
-        User* user1 = findUser(username);
-        followNode* currentFollowing = user1->headFollowing;
-        while (currentFollowing) {
+    // Find the user object for the given username
+    User* user1 = findUser(username);
+    if (!user1) return;
 
-            usernameException* newException = new usernameException(currentFollowing->name);
-            newException->next = headException;
-            headException = newException;
-
-
-            User* friends = findUser(currentFollowing->name);
-            followNode* followerFriends = friends->headFollower;
-            while (followerFriends) {
-                bool userException = false;
-
-                if(followerFriends->name == username){
-                    userException = true;
-                }
-
-                if (!userException)
-                    obj.addString(followerFriends->name, 2);
-                
-                followerFriends = followerFriends->next;
-            }
-            followNode* followingFriends = friends->headFollowing;
-            while (followingFriends) {
-                bool userException = false;
-
-                if(followingFriends->name == username){
-                    userException = true;
-                } 
-                
-                if (!userException)
-                    obj.addString(followingFriends->name, 2);
-                followingFriends = followingFriends->next;
-            }
-            currentFollowing = currentFollowing->next;
-        }
-
-        usernameException* followingException = headException;
-        while(followingException){
-            obj.removeException(followingException->data);
-            followingException = followingException->next;
-        }
-        obj.sortText();
-        obj.printText();
+    // Add users Alice already follows to the exception list
+    followNode* currentFollowing = user1->headFollowing;
+    while (currentFollowing) {
+        obj.addString(currentFollowing->name, 1);
+        currentFollowing = currentFollowing->next;
     }
+
+    // Find friends of Alice's followings
+    currentFollowing = user1->headFollowing;
+    while (currentFollowing) {
+        User* friendUser = findUser(currentFollowing->name);
+        if (friendUser) {
+            // Check followers of Alice's followings
+            followNode* followerOfFriend = friendUser->headFollower;
+            while (followerOfFriend) {
+                if (followerOfFriend->name != username) {
+                    obj.addString(followerOfFriend->name, 2);
+                }
+                followerOfFriend = followerOfFriend->next;
+            }
+
+            // Check followings of Alice's followings
+            followNode* followingOfFriend = friendUser->headFollowing;
+            while (followingOfFriend) {
+                if (followingOfFriend->name != username) {
+                    obj.addString(followingOfFriend->name, 2);
+                }
+                followingOfFriend = followingOfFriend->next;
+            }
+        }
+        currentFollowing = currentFollowing->next;
+    }
+
+    // Remove exceptions (users Alice already follows) from the suggestions
+    currentFollowing = user1->headFollowing;
+    while (currentFollowing) {
+        obj.removeException(currentFollowing->name);
+        currentFollowing = currentFollowing->next;
+    }
+
+    // Remove the user itself from suggestions
+    obj.removeException(username);
+
+    obj.sortText();
+    obj.printText();
+}
+
+
 
     void grouptopic() {
         Group* currentGroup = headGroup;
@@ -459,51 +454,58 @@ public:
 
 
 int main() {
-    App app;
+    // Usernames and interests are hardcoded
+    string names[] = {"Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi", "Ivan", "Judy"};
+    string interests[][3] = {
+        {"sports", "music", "movies"},
+        {"reading", "traveling", "gaming"},
+        {"cooking", "fitness", "photography"},
+        {"art", "music", "sports"},
+        {"gaming", "movies", "reading"},
+        {"traveling", "cooking", "art"},
+        {"fitness", "photography", "music"},
+        {"sports", "gaming", "movies"},
+        {"reading", "art", "fitness"},
+        {"cooking", "traveling", "music"}
+    };
 
-    // Example user data
-    stringstream user1Data("music sports coding");
-    stringstream user2Data("reading music movies");
-    stringstream user3Data("coding sports reading");
-    stringstream user4Data("music movies sports");
-    stringstream user5Data("cooking travel music");
-    stringstream user6Data("sports travel coding");
-    stringstream user7Data("reading cooking travel");
+    App myApp;
 
-    // Insert users into the app
-    app.insert(user1Data, "Alice");
-    app.insert(user2Data, "Bob");
-    app.insert(user3Data, "Charlie");
-    app.insert(user4Data, "Diana");
-    app.insert(user5Data, "Eve");
-    app.insert(user6Data, "Frank");
-    app.insert(user7Data, "Grace");
+    // Insert 10 users into the application
+    for (int i = 0; i < 10; ++i) {
+        stringstream ss;
+        ss << interests[i][0] << " " << interests[i][1] << " " << interests[i][2];
+        myApp.insert(ss, names[i]);
+    }
 
-    // Connect users (following relationships)
-    app.connect("Alice", "Bob");
-    app.connect("Bob", "Charlie");
-    app.connect("Alice", "Charlie");
-    app.connect("Charlie", "Diana");
-    app.connect("Eve", "Frank");
-    app.connect("Frank", "Grace");
-    app.connect("Alice", "Eve");
-    app.connect("Bob", "Frank");
+    // Create some follower-following relationships
+    myApp.connect("Alice", "Bob");
+    myApp.connect("Alice", "Charlie");
+    myApp.connect("Bob", "David");
+    myApp.connect("Charlie", "Eve");
+    myApp.connect("David", "Frank");
+    myApp.connect("Eve", "Grace");
+    myApp.connect("Frank", "Heidi");
+    myApp.connect("Grace", "Ivan");
+    myApp.connect("Heidi", "Judy");
+    myApp.connect("Ivan", "Alice");
+    myApp.connect("Frank", "Bob");
 
     // Display the number of groups
-    cout << "Number of groups: ";
-    app.numgroup();
+    cout << "Number of groups:" << endl;
+    myApp.numgroup();
 
     // Display the most followed users
-    cout << "Most followed users: ";
-    app.mostfollowed();
+    cout << "Most followed users:" << endl;
+    myApp.mostfollowed();
 
     // Suggest friends for a user
-    cout << "Friend suggestions for Alice: ";
-    app.suggestfriend("Alice");
+    cout << "Suggested friends for Alice:" << endl;
+    myApp.suggestfriend("Alice");
 
-    // Display group topics
-    cout << "Group topics: " << endl;
-    app.grouptopic();
+    // Display the most common topics in each group
+    cout << "Group topics:" << endl;
+    myApp.grouptopic();
 
     return 0;
 }
