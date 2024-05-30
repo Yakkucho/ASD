@@ -1,3 +1,10 @@
+/*
+PHASYA VIGO KHALIL 235150300111004
+GILANG SHIDO FAIZALHAQ 235150300111011
+ADIKA RIZKY PRIMANTORO 235150301111011
+MUHAMMAD SYAUQI FADILLAH 235150307111007
+MUHAMMAD RAKA NAUFAL 235150307111004
+*/
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -519,6 +526,7 @@ public:
     Node(const string &data) : data(data), next(nullptr) {}
 };
 
+// Kelas Queue untuk mengelola operasi antrian
 class Queue {
 private:
     Node* front;
